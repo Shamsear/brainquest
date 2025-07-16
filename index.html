@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrainQuest</title>
+    <link rel="icon" href="brain-icon.svg" type="image/svg+xml">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="bg-black text-white overflow-hidden font-exo">
+    <div id="app" class="h-screen w-screen relative">
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black">
+            <div class="text-5xl font-orbitron text-blue-400 mb-8 tracking-wider">BRAIN<span class="text-purple-400">QUEST</span></div>
+            <div class="w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
+                <div id="loading-bar" class="h-full w-0 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"></div>
+            </div>
+            <div id="loading-text" class="mt-4 text-sm text-gray-400">Initializing neural interface...</div>
+        </div>
+
+        <!-- Main Container (initially hidden) -->
+        <div id="main-container" class="hidden h-full">
+            <!-- Content will be dynamically loaded here -->
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
