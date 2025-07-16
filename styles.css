@@ -986,6 +986,8 @@ body {
     overflow: hidden;
     height: 100vh;
     width: 100vw;
+    -webkit-tap-highlight-color: rgba(0,0,0,0); /* Remove tap highlight on mobile */
+    touch-action: manipulation; /* Improve touch response */
 }
 
 #app {
@@ -1006,6 +1008,7 @@ body {
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: #3490dc #1a1a2e;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 main {
@@ -1035,6 +1038,39 @@ main {
 .memory-cell {
     min-width: 30px;
     min-height: 30px;
+}
+
+/* Mobile-specific touch improvements */
+@media (hover: none) {
+    /* Replace hover effects with active state for touch devices */
+    .cyber-button:active::before {
+        left: 100%;
+    }
+    
+    .challenge-card:active::after {
+        left: 100%;
+    }
+    
+    .answer-option:active::before {
+        left: 100%;
+    }
+    
+    /* Make buttons larger for touch targets */
+    .cyber-button {
+        padding: 12px 24px;
+        min-height: 44px; /* Minimum recommended touch target size */
+    }
+    
+    /* Increase touch target size for interactive elements */
+    .memory-cell {
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    /* Remove hover-specific animations */
+    .neural-card:hover {
+        transform: none;
+    }
 }
 
 /* Improve mobile responsiveness */
@@ -1091,12 +1127,40 @@ main {
     .p-4 {
         padding: 0.75rem !important;
     }
+    
+    /* Increase font sizes for better readability on small screens */
+    body {
+        font-size: 16px !important;
+    }
+    
+    /* Improve touch targets */
+    .answer-option {
+        padding: 0.875rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Make buttons easier to tap */
+    button, .cyber-button, .answer-option {
+        min-height: 44px;
+    }
+    
+    /* Fix keyboard shortcut indicators - hide on mobile */
+    .answer-option .text-xs {
+        display: none;
+    }
+    
+    /* Adjust avatar sizes for mobile */
+    .avatar-frame {
+        height: 3rem !important;
+        width: 3rem !important;
+    }
 }
 
 /* Ensure results screen fits */
 .result-card {
     max-height: 80vh;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 /* Fix for daily challenge and streak cards */
@@ -1110,6 +1174,7 @@ main {
     width: 100%;
     overflow-y: auto;
     padding-bottom: 2rem;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 /* Fix for mobile overflow issues */
@@ -1148,12 +1213,22 @@ main {
     }
     
     p {
-        font-size: 0.75rem !important;
+        font-size: 0.875rem !important;
     }
     
     .cyber-button {
         padding: 0.5rem 0.75rem !important;
-        font-size: 0.75rem !important;
+        font-size: 0.875rem !important;
+    }
+    
+    /* Increase contrast for better readability */
+    .text-gray-400 {
+        color: rgba(203, 213, 225, 0.9) !important;
+    }
+    
+    /* Make statistics more readable */
+    .stat-value {
+        font-size: 1.25rem !important;
     }
 }
 
@@ -1169,5 +1244,43 @@ main {
     
     .result-card {
         max-height: 70vh;
+    }
+}
+
+/* Portrait phone specific adjustments */
+@media (max-width: 480px) {
+    .grid-cols-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+    
+    .streak-day {
+        transform: scale(0.8);
+    }
+    
+    /* Stack buttons on very small screens */
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    /* Make sure modal dialogs fit */
+    .neural-card.p-8 {
+        padding: 1rem !important;
+    }
+}
+
+/* Fix for iPhone notch/dynamic island */
+@supports (padding: max(0px)) {
+    .neural-bg, header {
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
+    
+    header {
+        padding-top: max(0.75rem, env(safe-area-inset-top));
+    }
+    
+    .home-screen-container {
+        padding-bottom: max(2rem, env(safe-area-inset-bottom));
     }
 } 

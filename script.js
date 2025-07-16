@@ -1,6 +1,9 @@
 // Sound effects
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
+// Device detection
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.matchMedia && window.matchMedia('(max-width: 768px)').matches);
+
 // Game state
 const gameState = {
     currentScreen: 'loading',
@@ -53,6 +56,48 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyboardShortcuts);
+    
+    // Add meta viewport tag for proper mobile scaling if not already present
+    if (!document.querySelector('meta[name="viewport"]')) {
+        const metaTag = document.createElement('meta');
+        metaTag.name = 'viewport';
+        metaTag.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+        document.head.appendChild(metaTag);
+    }
+    
+    // Add apple-mobile-web-app-capable meta tag for iOS fullscreen
+    if (!document.querySelector('meta[name="apple-mobile-web-app-capable"]')) {
+        const metaTag = document.createElement('meta');
+        metaTag.name = 'apple-mobile-web-app-capable';
+        metaTag.content = 'yes';
+        document.head.appendChild(metaTag);
+    }
+    
+    // Prevent double-tap zoom on iOS
+    document.addEventListener('touchend', function(event) {
+        event.preventDefault();
+        // Process the touchend event only if it's a simple tap
+        if (event.changedTouches && event.changedTouches.length === 1) {
+            const touch = event.changedTouches[0];
+            const target = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (target) {
+                // Simulate a click event
+                const clickEvent = new MouseEvent('click', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window
+                });
+                target.dispatchEvent(clickEvent);
+            }
+        }
+    }, { passive: false });
+    
+    // Prevent pull-to-refresh on mobile
+    document.body.addEventListener('touchmove', function(e) {
+        if (e.touches.length > 1) {
+            e.preventDefault();
+        }
+    }, { passive: false });
 });
 
 // Check if daily challenge is available
@@ -116,6 +161,9 @@ function startDailyChallenge() {
 
 // Handle keyboard shortcuts
 function handleKeyboardShortcuts(e) {
+    // Only process keyboard shortcuts on non-mobile devices
+    if (isMobile) return;
+    
     // Space to start/continue
     if (e.code === 'Space' && (gameState.currentScreen === 'welcome' || gameState.currentScreen === 'result')) {
         e.preventDefault();
@@ -299,7 +347,7 @@ function renderWelcomeScreen() {
                 INITIALIZE SEQUENCE
             </button>
             
-            <p class="text-gray-500 mt-6 text-sm">PRESS SPACE TO CONTINUE</p>
+            ${!isMobile ? `<p class="text-gray-500 mt-6 text-sm">PRESS SPACE TO CONTINUE</p>` : ''}
         </div>
     `;
     
@@ -1115,9 +1163,11 @@ function renderQuizScreen() {
                                     </div>
                                     <span class="text-sm md:text-base">${option}</span>
                                 </div>
+                                ${!isMobile ? `
                                 <div class="absolute bottom-1 right-1 md:bottom-2 md:right-2 text-xs text-gray-500 opacity-70">
                                     Press ${index + 1} key
                                 </div>
+                                ` : ''}
                             </button>
                         `).join('')}
                     </div>
@@ -1150,7 +1200,7 @@ function renderQuizScreen() {
                         </button>
                     </div>
                     
-                    <p class="text-gray-500 text-sm mt-4 md:mt-6">Press ESC to resume</p>
+                    ${!isMobile ? `<p class="text-gray-500 text-sm mt-4 md:mt-6">Press ESC to resume</p>` : ''}
                 </div>
             </div>
         `;
@@ -1166,6 +1216,19 @@ function renderQuizScreen() {
                 const selectedIndex = parseInt(option.dataset.index);
                 handleAnswer(selectedIndex);
             });
+            
+            // Add touch feedback for mobile
+            if (isMobile) {
+                option.addEventListener('touchstart', () => {
+                    option.classList.add('border-blue-500', 'bg-gray-800');
+                });
+                
+                option.addEventListener('touchend', () => {
+                    setTimeout(() => {
+                        option.classList.remove('border-blue-500', 'bg-gray-800');
+                    }, 150);
+                });
+            }
         });
     }
     
@@ -1299,7 +1362,7 @@ function renderMemoryMatrixChallenge(container, challenge) {
                     </button>
                 </div>
                 
-                <p class="text-gray-500 text-sm mt-4 md:mt-6">Press ESC to resume</p>
+                ${!isMobile ? `<p class="text-gray-500 text-sm mt-4 md:mt-6">Press ESC to resume</p>` : ''}
             </div>
         </div>
     `;
@@ -1336,6 +1399,21 @@ function renderMemoryMatrixChallenge(container, challenge) {
             showMemoryPattern(pattern, challenge.memorizeTime);
         }
     }, 1000);
+    
+    // Add touch feedback for mobile
+    if (isMobile) {
+        document.querySelectorAll('.memory-cell').forEach(cell => {
+            cell.addEventListener('touchstart', () => {
+                cell.classList.add('scale-105');
+            });
+            
+            cell.addEventListener('touchend', () => {
+                setTimeout(() => {
+                    cell.classList.remove('scale-105');
+                }, 150);
+            });
+        });
+    }
 }
 
 // Show memory pattern
@@ -1468,6 +1546,15 @@ function handleMemoryCellClick(cell, index) {
             }
         }, 2000);
     }
+    
+    // Add vibration feedback on mobile devices for correct/incorrect answers
+    if (isMobile && navigator.vibrate) {
+        if (isCorrect) {
+            navigator.vibrate(50); // Short vibration for correct
+        } else {
+            navigator.vibrate([50, 50, 50]); // Pattern vibration for incorrect
+        }
+    }
 }
 
 // Update memory progress
@@ -1568,6 +1655,15 @@ function handleAnswer(selectedIndex) {
             finishQuiz();
         }
     }, 1500);
+    
+    // Add vibration feedback on mobile devices for correct/incorrect answers
+    if (isMobile && navigator.vibrate) {
+        if (isCorrect) {
+            navigator.vibrate(50); // Short vibration for correct
+        } else {
+            navigator.vibrate([50, 50, 50]); // Pattern vibration for incorrect
+        }
+    }
 }
 
 // Show answer feedback
@@ -1823,7 +1919,7 @@ function renderResultScreen() {
                 </div>
             </div>
             
-            <p class="text-gray-500 text-center mt-4 md:mt-6 text-xs md:text-sm">PRESS SPACE TO CONTINUE</p>
+            ${!isMobile ? `<p class="text-gray-500 text-center mt-4 md:mt-6 text-xs md:text-sm">PRESS SPACE TO CONTINUE</p>` : ''}
         </div>
     `;
     
@@ -1882,6 +1978,27 @@ function renderResultScreen() {
             startQuiz(gameState.currentQuiz.mode);
         }
     });
+    
+    // Add swipe gesture for mobile to navigate from results screen to home
+    if (isMobile) {
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        resultScreen.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, false);
+        
+        resultScreen.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, false);
+        
+        function handleSwipe() {
+            if (touchEndX - touchStartX > 100) { // Right swipe
+                navigateTo('home');
+            }
+        }
+    }
 }
 
 // Leaderboard Screen
@@ -2570,3 +2687,35 @@ function verifyCircuit(challenge) {
         }
     }, isCorrect ? 1500 : 2000);
 } 
+
+// Add a function to detect orientation changes and optimize layout
+window.addEventListener('orientationchange', handleOrientationChange);
+
+function handleOrientationChange() {
+    // Force redraw of current screen to adjust for new orientation
+    if (gameState.currentScreen) {
+        setTimeout(() => {
+            navigateTo(gameState.currentScreen);
+        }, 300); // Small delay to allow orientation change to complete
+    }
+}
+
+// Add a function to handle offline mode
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+function updateOnlineStatus() {
+    const isOnline = navigator.onLine;
+    
+    // Show offline notification if needed
+    if (!isOnline) {
+        const offlineNotification = document.createElement('div');
+        offlineNotification.className = 'fixed bottom-4 left-4 right-4 bg-red-900 text-white p-3 rounded-lg z-50 text-center';
+        offlineNotification.textContent = 'You are offline. BrainQuest will continue to work, but some features may be limited.';
+        document.body.appendChild(offlineNotification);
+        
+        setTimeout(() => {
+            offlineNotification.remove();
+        }, 5000);
+    }
+}
